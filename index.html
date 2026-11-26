@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Black Friday"><title>Black Friday · Robux Studio</title>
+<link rel="icon" href="media/app-icon.png"><link rel="apple-touch-icon" href="media/app-icon.png"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="stage">
+ <section id="desktop" class="view"><div class="deskblur"></div><div class="deskpanel"><img alt="Biblioteca de apps del iPad" class="deskimage" src="media/desk.webp"><button class="hot launch" aria-label="Open Roblox"></button><button class="hot recent" aria-label="Open Roblox from Recientes"></button><button class="hot desksearch" aria-label="Buscar en la biblioteca de apps"></button></div></section>
+ <section id="splash" class="view" hidden><img src="media/wordmark.webp" alt="Roblox"></section>
+ <section id="shell" class="view" hidden><nav id="rail" aria-label="Navigation"></nav><div id="main"></div></section>
+ <section id="shop" class="view" hidden><div class="storebar"></div><button id="exitShop" class="iconbtn shopclose" aria-label="Close Robux packages"></button><div id="shopscroll"><div class="shophead"><div class="balancepill"><strong id="shopbalance"></strong><button id="send" class="send">↑ Send</button></div></div><div class="shopbody"><h1>Robux packages</h1><p class="fine">By purchasing Robux, you agree to our <b>Terms of Use</b>, including the arbitration clause and revocation policy.</p><div id="storeCoupon"></div><div id="packages"></div><div class="plushead"><h2>New on Roblox</h2><button id="plusInfo">Learn more</button></div><div id="plusplans"></div></div></div></section>
+ <div id="veil" hidden><section id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" tabindex="-1"></section></div><div id="toast" role="status"></div>
+</main>
+<script src="app.js"></script>
+</body></html>

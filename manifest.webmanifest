@@ -1,0 +1,16 @@
+{
+  "name": "Black Friday · Robux Studio",
+  "short_name": "Black Friday",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "media/app-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
