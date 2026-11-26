@@ -25,10 +25,27 @@ const ib=(act,label,k,cls='')=>'<button class="iconbtn '+cls+'" data-act="'+act+
 const btn=(act,title,cls='primary')=>'<button class="'+cls+'" data-act="'+act+'">'+title+'</button>';
 const packageList=[[22500,'199.99'],[10000,'99.99'],[4500,'49.99'],[3150,'34.99'],[1700,'19.99'],[1200,'14.99'],[800,'9.99'],[400,'4.99'],[80,'0.99'],[40,'0.49']];
 const key='black-friday-robux-studio-v1';
-const initial=()=>({balance:17,coupon:'new',redeemed:0,owned:[],outfit:null,slots:{},transfers:[]});
-let memory=initial();
-function read(){try{const raw=localStorage.getItem(key);if(raw)return Object.assign(initial(),JSON.parse(raw))}catch{}return memory}
-function write(obj){memory=obj;try{localStorage.setItem(key,JSON.stringify(obj))}catch{}}
+const newWallet = () => ({balance:17, coupon:'new', redeemed:0, transfers:[]});
+const emptyInventory = () => ({owned:[], outfit:null, slots:{}});
+let wallet = newWallet();
+let inventory = emptyInventory();
+
+function read() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(key));
+    if (saved) {
+      const {owned = [], outfit = null, slots = {}} = saved;
+      inventory = {owned, outfit, slots};
+    }
+  } catch {}
+  return {...inventory, ...wallet};
+}
+
+function write({balance, coupon, redeemed, transfers, owned, outfit, slots}) {
+  Object.assign(wallet, {balance, coupon, redeemed, transfers});
+  inventory = {owned, outfit, slots};
+  try { localStorage.setItem(key, JSON.stringify(inventory)); } catch {}
+}
 let scene='desktop',page='Home',homeTab='For you',homeQuery='',homeScroll=0;
 let dialogType='',opener=null,pendingPackage=0,shopReturn='Home',priceApplied=false,launching=false,checkoutBusy=false;
 let mode='Marketplace',category='All',selection=null,cart=[],undo=[],redo=[],slot=1,motion='Full Set',subtab='Bundles',filter='Featured',catalogQuery='',expanded=false,zoom=1;
@@ -71,6 +88,9 @@ function coupon(){
 function saveCoupon(){const s=read();if(s.coupon==='new'){s.coupon='saved';write(s)}dismiss();if(scene==='shop')renderShop();toast('Coupon saved to Robux')}
 function enter(source) {
  if (launching || scene !== 'desktop') return;
+ wallet = newWallet();
+ priceApplied = false;
+ pendingPackage = 0;
  launching = true;
  const tapped = source?.querySelector?.('.os-glyph, img') || source;
  const rect = tapped?.getBoundingClientRect?.();
@@ -209,7 +229,7 @@ function checkout(){const s=read();const ids=(mode==='Customize'?[selection]:car
  modal('checkout','Checkout','<div class="sheetbody">'+ids.map(id=>'<div class="resultbtn">'+pic(id)+'<span>'+esc(productData[id].name)+'</span><b class="price" style="margin-left:auto">'+robuxIcon('price')+productData[id].price+'</b></div>').join('')+'</div><div class="rowline"><span>Demo balance</span><b>'+ico('robux')+' '+fmt(s.balance)+'</b></div><div class="rowline total"><span>Total</span><b>'+ico('robux')+' '+fmt(total)+'</b></div>'+(!enough?'<p class="mini">You need '+fmt(total-s.balance)+' more Robux.</p>':'')+'<div class="actions">'+btn('dismiss','Cancel','secondary')+btn(enough?'purchase':'shop',enough?'Confirm purchase':'Get Robux')+'</div>');
 }
 async function purchase(){if(dialogType!=='checkout'||checkoutBusy)return;checkoutBusy=true;try{await transact(()=>{const s=read();const ids=(mode==='Customize'?[selection]:cart).filter(id=>productData[id]&&!s.owned.includes(id)&&productData[id].price);const total=ids.reduce((v,id)=>v+productData[id].price,0);if(!ids.length||total>s.balance){checkout();return}s.balance-=total;s.owned.push(...ids);s.outfit=ids.at(-1);write(s);equippedPreview=s.outfit;selection=null;cart=[];undo=[];redo=[];dismiss();market(true);toast('Purchase complete · Added to Customize')})}finally{checkoutBusy=false}}
-function resetDemo(){write(initial());homeQuery='';homeScroll=0;homeTab='For you';mode='Marketplace';category='All';selection=null;cart=[];undo=[];redo=[];expanded=false;zoom=1;priceApplied=false;previewOverride=null;equippedPreview=null;slot=1;catalogQuery='';filter='Featured';dismiss();$('#main').innerHTML='';view('desktop')}
+function resetDemo(){write({...emptyInventory(),...newWallet()});homeQuery='';homeScroll=0;homeTab='For you';mode='Marketplace';category='All';selection=null;cart=[];undo=[];redo=[];expanded=false;zoom=1;priceApplied=false;previewOverride=null;equippedPreview=null;slot=1;catalogQuery='';filter='Featured';dismiss();$('#main').innerHTML='';showIpad()}
 function friend(i){if(!i){modal('friends','Add Friends','<div class="menulist">'+friendNames.slice(1).map((n,i)=>btn('friend:'+(i+1),pic('friend'+(i+1))+esc(n),'')).join('')+'</div>');return}modal('friend',friendNames[i],pic('friend'+i,friendNames[i],'detailpic')+'<div class="rowline"><span>Connection</span><b>Friend</b></div><div class="actions">'+btn('dismiss','Done')+'</div>')}
 function gameDetails(id){const k=id[0],i=Number(id.slice(1)),name=(k==='g'?gameNames:contNames)[i];modal('game',name,pic(id,name,'detailpic detailwide')+'<div class="rowline"><span>Experience</span><b>'+ico('thumb')+' '+(k==='g'?rating[i]:[36,82,92,83,91,90][i])+'%</b></div><div class="actions">'+btn('dismiss','Back to Home')+'</div>')}
 function menu(a,source){const cut=a.indexOf(':'),t=cut<0?a:a.slice(0,cut),v=cut<0?'':a.slice(cut+1);
@@ -346,6 +366,17 @@ document.addEventListener('keydown',event=>{
   if(event.key==='ArrowRight')showIpad('library');
 });
 const launchOptions = new URLSearchParams(location.search);
+// The iPad can bring back a suspended home-screen app without loading a new document.
+if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) {
+  let wasHidden = false;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) wasHidden = true;
+    else if (wasHidden) location.reload();
+  });
+}
+addEventListener('pageshow', event => {
+  if (event.persisted) location.reload();
+});
 if (!launchOptions.has('start') || launchOptions.get('start') === 'ipad') showIpad();
 $('#stage').classList.toggle('recording', launchOptions.get('record') === '1');
 if (launchOptions.get('start') === 'coupon') {
